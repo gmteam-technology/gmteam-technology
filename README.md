@@ -32,14 +32,14 @@ Este repositório contém exemplos de nossos projetos, templates e componentes r
 ## 📞 Entre em Contato
 Está interessado em trabalhar conosco ou deseja saber mais? Fale conosco!  
 
-- **Site:** [Não desponivel no momento](Não desponivel no momento)  
+- **Site:** [Não disponivel no momento](Não disponivel no momento)  
 - **E-mail:** murilops29@gmail.com
 - **Telefone/WhatsApp:** +55 (65) 99673-7101  
 - **Redes Sociais:**
-- [LinkedIn](Não desponivel no momento)
+- [LinkedIn](Não disponivel no momento)
 - [Instagram](https://www.instagram.com/gmteam.technology/)
 
 ---
 
 💡 _“Porque o digital é mais do que uma tendência – é o futuro."_  
-Equipe [Nome da Empresa]
+Equipe GM TEAM
