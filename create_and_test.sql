@@ -1,63 +1,71 @@
-DROP DATABASE IF EXISTS sistema_inscricoes_eventos;
-CREATE DATABASE sistema_inscricoes_eventos;
-USE sistema_inscricoes_eventos;
+PRAGMA foreign_keys = OFF;
+
+DROP TABLE IF EXISTS Inscricoes;
+DROP TABLE IF EXISTS Administradores;
+DROP TABLE IF EXISTS Externos;
+DROP TABLE IF EXISTS Servidores;
+DROP TABLE IF EXISTS Alunos;
+DROP TABLE IF EXISTS Eventos;
+DROP TABLE IF EXISTS Pessoas;
+
+PRAGMA foreign_keys = ON;
 
 CREATE TABLE Pessoas (
-  id_pessoa INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  cpf CHAR(11) NOT NULL,
-  senha_normal VARCHAR(255) NOT NULL,
-  senha_criptografada VARCHAR(255) NOT NULL,
-  data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id_pessoa INTEGER PRIMARY KEY,
+  nome TEXT NOT NULL,
+  cpf TEXT NOT NULL,
+  senha_normal TEXT NOT NULL,
+  senha_criptografada TEXT NOT NULL,
+  data_cadastro TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE Alunos (
-  id_aluno INT PRIMARY KEY,
-  email VARCHAR(150),
-  telefone VARCHAR(20),
-  matricula VARCHAR(30),
+  id_aluno INTEGER PRIMARY KEY,
+  email TEXT,
+  telefone TEXT,
+  matricula TEXT,
   FOREIGN KEY (id_aluno) REFERENCES Pessoas(id_pessoa)
 );
 
 CREATE TABLE Servidores (
-  id_servidor INT PRIMARY KEY,
-  email VARCHAR(150),
-  telefone VARCHAR(20),
-  tipo_servidor VARCHAR(30),
-  siape VARCHAR(30),
+  id_servidor INTEGER PRIMARY KEY,
+  email TEXT,
+  telefone TEXT,
+  tipo_servidor TEXT,
+  siape TEXT,
   FOREIGN KEY (id_servidor) REFERENCES Pessoas(id_pessoa)
 );
 
 CREATE TABLE Externos (
-  id_externo INT PRIMARY KEY,
-  email VARCHAR(150),
-  telefone VARCHAR(20),
-  empresa VARCHAR(150),
+  id_externo INTEGER PRIMARY KEY,
+  email TEXT,
+  telefone TEXT,
+  empresa TEXT,
   FOREIGN KEY (id_externo) REFERENCES Pessoas(id_pessoa)
 );
 
 CREATE TABLE Administradores (
-  id_admin INT PRIMARY KEY,
-  email VARCHAR(150),
-  telefone VARCHAR(20),
-  nivel_acesso INT,
+  id_admin INTEGER PRIMARY KEY,
+  email TEXT,
+  telefone TEXT,
+  nivel_acesso INTEGER,
   FOREIGN KEY (id_admin) REFERENCES Pessoas(id_pessoa)
 );
 
 CREATE TABLE Eventos (
-  id_evento INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(150) NOT NULL,
-  data_evento DATE,
-  local VARCHAR(150),
-  vagas INT
+  id_evento INTEGER PRIMARY KEY,
+  nome TEXT NOT NULL,
+  data_evento TEXT,
+  local TEXT,
+  vagas INTEGER
 );
 
 CREATE TABLE Inscricoes (
-  id_inscricao INT AUTO_INCREMENT PRIMARY KEY,
-  id_pessoa INT,
-  id_evento INT,
-  data_inscricao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status VARCHAR(20),
+  id_inscricao INTEGER PRIMARY KEY,
+  id_pessoa INTEGER,
+  id_evento INTEGER,
+  data_inscricao TEXT DEFAULT CURRENT_TIMESTAMP,
+  status TEXT,
   FOREIGN KEY (id_pessoa) REFERENCES Pessoas(id_pessoa),
   FOREIGN KEY (id_evento) REFERENCES Eventos(id_evento)
 );
@@ -110,7 +118,7 @@ ORDER BY Eventos.nome;
 SELECT Eventos.nome, COUNT(Inscricoes.id_inscricao) AS total_inscritos
 FROM Eventos
 LEFT JOIN Inscricoes ON Inscricoes.id_evento = Eventos.id_evento
-GROUP BY Eventos.id_evento, Eventos.nome;
+GROUP BY Eventos.id_evento;
 
 SELECT nome, cpf
 FROM Pessoas
