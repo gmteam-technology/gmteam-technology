@@ -1,143 +1,138 @@
-DROP DATABASE IF EXISTS sistema_inscricoes_eventos;
-CREATE DATABASE IF NOT EXISTS sistema_inscricoes_eventos
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE sistema_inscricoes_eventos;
+DROP TABLE IF EXISTS Inscricoes;
+DROP TABLE IF EXISTS Administradores;
+DROP TABLE IF EXISTS Externos;
+DROP TABLE IF EXISTS Servidores;
+DROP TABLE IF EXISTS Alunos;
+DROP TABLE IF EXISTS Eventos;
+DROP TABLE IF EXISTS Pessoas;
 
 CREATE TABLE Pessoas (
-  id_pessoa INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  cpf CHAR(11) NOT NULL,
-  senha_normal VARCHAR(255) NOT NULL,
-  senha_criptografada VARCHAR(255) NOT NULL,
-  data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT uq_pessoas_cpf UNIQUE (cpf),
-  CONSTRAINT chk_pessoas_cpf CHECK (CHAR_LENGTH(cpf) = 11),
-  INDEX idx_pessoas_cpf (cpf),
-  INDEX idx_pessoas_nome (nome)
-) ENGINE = InnoDB;
+  id_pessoa INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  cpf TEXT NOT NULL UNIQUE,
+  senha_normal TEXT NOT NULL,
+  senha_criptografada TEXT NOT NULL,
+  data_cadastro TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (LENGTH(cpf) = 11)
+);
+
+CREATE INDEX idx_pessoas_cpf ON Pessoas(cpf);
+CREATE INDEX idx_pessoas_nome ON Pessoas(nome);
 
 CREATE TABLE Alunos (
-  id_aluno INT PRIMARY KEY,
-  email VARCHAR(150) NOT NULL,
-  telefone VARCHAR(20),
-  matricula VARCHAR(30) NOT NULL,
-  CONSTRAINT uq_alunos_email UNIQUE (email),
-  CONSTRAINT uq_alunos_matricula UNIQUE (matricula),
-  CONSTRAINT fk_alunos_pessoas FOREIGN KEY (id_aluno)
-    REFERENCES Pessoas (id_pessoa)
-    ON DELETE CASCADE
-) ENGINE = InnoDB;
+  id_aluno INTEGER PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  telefone TEXT,
+  matricula TEXT NOT NULL UNIQUE,
+  FOREIGN KEY (id_aluno) REFERENCES Pessoas(id_pessoa) ON DELETE CASCADE
+);
 
 CREATE TABLE Servidores (
-  id_servidor INT PRIMARY KEY,
-  email VARCHAR(150) NOT NULL,
-  telefone VARCHAR(20),
-  tipo_servidor ENUM('Professor','Tecnico','Tercerizado','Estagiario') NOT NULL,
-  siape VARCHAR(30),
-  CONSTRAINT uq_servidores_email UNIQUE (email),
-  CONSTRAINT uq_servidores_siape UNIQUE (siape),
-  CONSTRAINT fk_servidores_pessoas FOREIGN KEY (id_servidor)
-    REFERENCES Pessoas (id_pessoa)
-    ON DELETE CASCADE
-) ENGINE = InnoDB;
+  id_servidor INTEGER PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  telefone TEXT,
+  tipo_servidor TEXT NOT NULL,
+  siape TEXT UNIQUE,
+  CHECK (tipo_servidor IN ('Professor','Técnico','Tercerizado','Estagiário')),
+  FOREIGN KEY (id_servidor) REFERENCES Pessoas(id_pessoa) ON DELETE CASCADE
+);
 
 CREATE TABLE Externos (
-  id_externo INT PRIMARY KEY,
-  email VARCHAR(150) NOT NULL,
-  telefone VARCHAR(20),
-  empresa VARCHAR(150) NOT NULL,
-  CONSTRAINT uq_externos_email UNIQUE (email),
-  CONSTRAINT fk_externos_pessoas FOREIGN KEY (id_externo)
-    REFERENCES Pessoas (id_pessoa)
-    ON DELETE CASCADE
-) ENGINE = InnoDB;
+  id_externo INTEGER PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  telefone TEXT,
+  empresa TEXT NOT NULL,
+  FOREIGN KEY (id_externo) REFERENCES Pessoas(id_pessoa) ON DELETE CASCADE
+);
 
 CREATE TABLE Administradores (
-  id_admin INT PRIMARY KEY,
-  email VARCHAR(150) NOT NULL,
-  telefone VARCHAR(20),
-  nivel_acesso TINYINT NOT NULL,
-  CONSTRAINT uq_admin_email UNIQUE (email),
-  CONSTRAINT fk_admin_pessoas FOREIGN KEY (id_admin)
-    REFERENCES Pessoas (id_pessoa)
-    ON DELETE CASCADE,
-  CONSTRAINT chk_admin_nivel CHECK (nivel_acesso BETWEEN 1 AND 5)
-) ENGINE = InnoDB;
+  id_admin INTEGER PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  telefone TEXT,
+  nivel_acesso INTEGER NOT NULL,
+  CHECK (nivel_acesso BETWEEN 1 AND 5),
+  FOREIGN KEY (id_admin) REFERENCES Pessoas(id_pessoa) ON DELETE CASCADE
+);
 
 CREATE TABLE Eventos (
-  id_evento INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(150) NOT NULL,
-  data_evento DATE NOT NULL,
-  local VARCHAR(150) NOT NULL,
-  vagas INT NOT NULL DEFAULT 100,
-  CONSTRAINT chk_eventos_vagas CHECK (vagas >= 0),
-  INDEX idx_eventos_data (data_evento),
-  INDEX idx_eventos_nome (nome)
-) ENGINE = InnoDB;
+  id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  data_evento TEXT NOT NULL,
+  local TEXT NOT NULL,
+  vagas INTEGER NOT NULL DEFAULT 100,
+  CHECK (vagas >= 0)
+);
+
+CREATE INDEX idx_eventos_data ON Eventos(data_evento);
+CREATE INDEX idx_eventos_nome ON Eventos(nome);
 
 CREATE TABLE Inscricoes (
-  id_inscricao INT AUTO_INCREMENT PRIMARY KEY,
-  id_pessoa INT NOT NULL,
-  id_evento INT NOT NULL,
-  data_inscricao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  status ENUM('Aguardando','Confirmado','Cancelado') NOT NULL DEFAULT 'Aguardando',
-  CONSTRAINT uq_inscricoes_pessoa_evento UNIQUE (id_pessoa, id_evento),
-  CONSTRAINT fk_inscricoes_pessoa FOREIGN KEY (id_pessoa)
-    REFERENCES Pessoas (id_pessoa)
-    ON DELETE CASCADE,
-  CONSTRAINT fk_inscricoes_evento FOREIGN KEY (id_evento)
-    REFERENCES Eventos (id_evento)
-    ON DELETE CASCADE,
-  INDEX idx_inscricoes_status (status)
-) ENGINE = InnoDB;
+  id_inscricao INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_pessoa INTEGER NOT NULL,
+  id_evento INTEGER NOT NULL,
+  data_inscricao TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status TEXT NOT NULL DEFAULT 'Aguardando',
+  CHECK (status IN ('Aguardando','Confirmado','Cancelado')),
+  UNIQUE (id_pessoa, id_evento),
+  FOREIGN KEY (id_pessoa) REFERENCES Pessoas(id_pessoa) ON DELETE CASCADE,
+  FOREIGN KEY (id_evento) REFERENCES Eventos(id_evento) ON DELETE CASCADE
+);
 
-START TRANSACTION;
+CREATE INDEX idx_inscricoes_status ON Inscricoes(status);
+
+BEGIN TRANSACTION;
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
-VALUES ('Ana Souza', '12345678901', 'senhaAna', SHA2('senhaAna', 256));
-SET @id_aluno1 = LAST_INSERT_ID();
+VALUES ('Ana Souza', '12345678901', 'senhaAna', '358d65b949cf9f5dbe7a5c9e065de4627375439203dd1511f7b24cb59d484bb4');
 INSERT INTO Alunos (id_aluno, email, telefone, matricula)
-VALUES (@id_aluno1, 'ana.souza@alunos.edu', '(11)90000-0001', '2025001');
+VALUES (last_insert_rowid(), 'ana.souza@alunos.edu', '(11)90000-0001', '2025001');
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
-VALUES ('Bruno Lima', '23456789012', 'senhaBruno', SHA2('senhaBruno', 256));
-SET @id_servidor1 = LAST_INSERT_ID();
+VALUES ('Bruno Lima', '23456789012', 'senhaBruno', 'bd7ec1bf19c74bd895b5facd6fc0f2bdffaa4b8d173c985ea094bc42f8c624a1');
 INSERT INTO Servidores (id_servidor, email, telefone, tipo_servidor, siape)
-VALUES (@id_servidor1, 'bruno.lima@if.edu', '(11)90000-0002', 'Tecnico', 'SIAPE1234');
+VALUES (last_insert_rowid(), 'bruno.lima@if.edu', '(11)90000-0002', 'Técnico', 'SIAPE1234');
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
-VALUES ('Carla Dias', '34567890123', 'senhaCarla', SHA2('senhaCarla', 256));
-SET @id_externo1 = LAST_INSERT_ID();
+VALUES ('Carla Dias', '34567890123', 'senhaCarla', 'c17fa12130ff247b490e18ae405e103bf543dcf371cee2b51f7052ff29cb6fd9');
 INSERT INTO Externos (id_externo, email, telefone, empresa)
-VALUES (@id_externo1, 'carla.dias@empresa.com', '(11)90000-0003', 'Tech Eventos');
+VALUES (last_insert_rowid(), 'carla.dias@empresa.com', '(11)90000-0003', 'Tech Eventos');
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
-VALUES ('Daniel Costa', '45678901234', 'senhaDaniel', SHA2('senhaDaniel', 256));
-SET @id_admin1 = LAST_INSERT_ID();
+VALUES ('Daniel Costa', '45678901234', 'senhaDaniel', '09eb0a911ae0a2a715434d44203a3df64ecec5bdd71648ee876c092b5087427c');
 INSERT INTO Administradores (id_admin, email, telefone, nivel_acesso)
-VALUES (@id_admin1, 'daniel.costa@if.edu', '(11)90000-0004', 5);
+VALUES (last_insert_rowid(), 'daniel.costa@if.edu', '(11)90000-0004', 5);
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
-VALUES ('Eduardo Alves', '56789012345', 'senhaEdu', SHA2('senhaEdu', 256));
-SET @id_aluno2 = LAST_INSERT_ID();
+VALUES ('Eduardo Alves', '56789012345', 'senhaEdu', '4debcc60d4b31cb7dad0084dfca2c2fe95a6c47202f3dc5a911dae9c17f425c8');
 INSERT INTO Alunos (id_aluno, email, telefone, matricula)
-VALUES (@id_aluno2, 'eduardo.alves@alunos.edu', '(11)90000-0005', '2025002');
+VALUES (last_insert_rowid(), 'eduardo.alves@alunos.edu', '(11)90000-0005', '2025002');
 
 INSERT INTO Eventos (nome, data_evento, local, vagas)
-VALUES ('Semana de Tecnologia', '2025-03-15', 'Auditorio Central', 150);
-SET @id_evento1 = LAST_INSERT_ID();
+VALUES ('Semana de Tecnologia', '2025-03-15', 'Auditório Central', 150);
 
 INSERT INTO Eventos (nome, data_evento, local, vagas)
-VALUES ('Workshop de Inovacao', '2025-04-20', 'Laboratorio 3', 80);
-SET @id_evento2 = LAST_INSERT_ID();
+VALUES ('Workshop de Inovação', '2025-04-20', 'Laboratório 3', 80);
 
 INSERT INTO Inscricoes (id_pessoa, id_evento, status)
-VALUES
-  (@id_aluno1, @id_evento1, 'Confirmado'),
-  (@id_servidor1, @id_evento1, 'Aguardando'),
-  (@id_externo1, @id_evento2, 'Confirmado');
+VALUES (
+  (SELECT id_pessoa FROM Pessoas WHERE cpf = '12345678901'),
+  (SELECT id_evento FROM Eventos WHERE nome = 'Semana de Tecnologia'),
+  'Confirmado'
+);
+
+INSERT INTO Inscricoes (id_pessoa, id_evento, status)
+VALUES (
+  (SELECT id_pessoa FROM Pessoas WHERE cpf = '23456789012'),
+  (SELECT id_evento FROM Eventos WHERE nome = 'Semana de Tecnologia'),
+  'Aguardando'
+);
+
+INSERT INTO Inscricoes (id_pessoa, id_evento, status)
+VALUES (
+  (SELECT id_pessoa FROM Pessoas WHERE cpf = '34567890123'),
+  (SELECT id_evento FROM Eventos WHERE nome = 'Workshop de Inovação'),
+  'Confirmado'
+);
 
 COMMIT;
 
@@ -147,7 +142,7 @@ ORDER BY data_cadastro;
 
 SELECT e.nome AS evento,
        p.nome AS participante,
-       COALESCE(a.matricula, s.siape, ex.empresa, 'Administrador') AS referencia_tipo,
+       COALESCE(a.matricula, s.siape, ex.empresa, CASE WHEN ad.id_admin IS NOT NULL THEN 'Administrador' END) AS referencia_tipo,
        i.status,
        i.data_inscricao
 FROM Inscricoes i
@@ -164,19 +159,22 @@ SELECT e.id_evento,
        e.vagas,
        e.vagas - (
          SELECT COUNT(*)
-         FROM Inscricoes i
-         WHERE i.id_evento = e.id_evento
-           AND i.status <> 'Cancelado'
+         FROM Inscricoes sub
+         WHERE sub.id_evento = e.id_evento
+           AND sub.status <> 'Cancelado'
        ) AS vagas_restantes
 FROM Eventos e;
 
-SELECT 'Alunos' AS tipo_usuario, COUNT(*) AS total FROM Alunos
-UNION ALL
-SELECT 'Servidores', COUNT(*) FROM Servidores
-UNION ALL
-SELECT 'Externos', COUNT(*) FROM Externos
-UNION ALL
-SELECT 'Administradores', COUNT(*) FROM Administradores;
+SELECT tipo_usuario, total
+FROM (
+  SELECT 'Alunos' AS tipo_usuario, COUNT(*) AS total FROM Alunos
+  UNION ALL
+  SELECT 'Servidores', COUNT(*) FROM Servidores
+  UNION ALL
+  SELECT 'Externos', COUNT(*) FROM Externos
+  UNION ALL
+  SELECT 'Administradores', COUNT(*) FROM Administradores
+);
 
 SELECT p.nome, ex.empresa, e.nome AS evento
 FROM Pessoas p
@@ -190,34 +188,29 @@ WHERE EXISTS (
 
 UPDATE Alunos
 SET email = 'ana.souza.atualizado@alunos.edu'
-WHERE id_aluno = @id_aluno1;
+WHERE id_aluno = (SELECT id_pessoa FROM Pessoas WHERE cpf = '12345678901');
 
 UPDATE Inscricoes
 SET status = 'Confirmado'
-WHERE id_inscricao = 2;
+WHERE id_pessoa = (SELECT id_pessoa FROM Pessoas WHERE cpf = '23456789012')
+  AND id_evento = (SELECT id_evento FROM Eventos WHERE nome = 'Semana de Tecnologia');
 
 UPDATE Servidores
 SET tipo_servidor = 'Professor'
-WHERE id_servidor = @id_servidor1;
+WHERE id_servidor = (SELECT id_pessoa FROM Pessoas WHERE cpf = '23456789012');
 
-START TRANSACTION;
+BEGIN TRANSACTION;
 DELETE FROM Inscricoes
-WHERE id_inscricao = 2;
+WHERE id_pessoa = (SELECT id_pessoa FROM Pessoas WHERE cpf = '23456789012')
+  AND id_evento = (SELECT id_evento FROM Eventos WHERE nome = 'Semana de Tecnologia');
 ROLLBACK;
 
-START TRANSACTION;
+BEGIN TRANSACTION;
 DELETE FROM Eventos
-WHERE id_evento = @id_evento1;
+WHERE nome = 'Semana de Tecnologia';
 ROLLBACK;
 
-START TRANSACTION;
+BEGIN TRANSACTION;
 DELETE FROM Pessoas
-WHERE id_pessoa = @id_externo1;
+WHERE cpf = '34567890123';
 ROLLBACK;
-
--- Testes de validação (descomente individualmente para executar)
--- INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada) VALUES ('CPF Duplicado', '12345678901', 'senha', SHA2('senha', 256));
--- INSERT INTO Administradores (id_admin, email, telefone, nivel_acesso) VALUES (@id_admin1, 'admin.invalido@if.edu', '(11)90000-0090', 10);
--- INSERT INTO Inscricoes (id_pessoa, id_evento, status) VALUES (9999, @id_evento1, 'Confirmado');
--- UPDATE Pessoas SET id_pessoa = 999 WHERE id_pessoa = @id_aluno1;
--- DELETE FROM Pessoas WHERE id_pessoa = 9999;
