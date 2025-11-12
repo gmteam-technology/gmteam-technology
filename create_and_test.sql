@@ -1,5 +1,3 @@
-PRAGMA foreign_keys = OFF;
-
 DROP TABLE IF EXISTS Inscricoes;
 DROP TABLE IF EXISTS Administradores;
 DROP TABLE IF EXISTS Externos;
@@ -7,8 +5,6 @@ DROP TABLE IF EXISTS Servidores;
 DROP TABLE IF EXISTS Alunos;
 DROP TABLE IF EXISTS Eventos;
 DROP TABLE IF EXISTS Pessoas;
-
-PRAGMA foreign_keys = ON;
 
 CREATE TABLE Pessoas (
   id_pessoa INTEGER PRIMARY KEY,
