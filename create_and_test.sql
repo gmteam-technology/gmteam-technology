@@ -33,7 +33,7 @@ CREATE TABLE Servidores (
   telefone TEXT,
   tipo_servidor TEXT NOT NULL,
   siape TEXT UNIQUE,
-  CHECK (tipo_servidor IN ('Professor','Técnico','Tercerizado','Estagiário')),
+CHECK (tipo_servidor IN ('Professor','Tecnico','Tercerizado','Estagiario')),
   FOREIGN KEY (id_servidor) REFERENCES Pessoas(id_pessoa) ON DELETE CASCADE
 );
 
@@ -130,7 +130,7 @@ VALUES (
 INSERT INTO Inscricoes (id_pessoa, id_evento, status)
 VALUES (
   (SELECT id_pessoa FROM Pessoas WHERE cpf = '34567890123'),
-  (SELECT id_evento FROM Eventos WHERE nome = 'Workshop de Inovação'),
+    (SELECT id_evento FROM Eventos WHERE nome = 'Workshop de Inovacao'),
   'Confirmado'
 );
 
