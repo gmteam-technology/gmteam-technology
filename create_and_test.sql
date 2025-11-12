@@ -85,33 +85,33 @@ BEGIN TRANSACTION;
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
 VALUES ('Ana Souza', '12345678901', 'senhaAna', '358d65b949cf9f5dbe7a5c9e065de4627375439203dd1511f7b24cb59d484bb4');
 INSERT INTO Alunos (id_aluno, email, telefone, matricula)
-VALUES (last_insert_rowid(), 'ana.souza@alunos.edu', '(11)90000-0001', '2025001');
+VALUES (last_insert_rowid(), 'ana.souza@alunos.edu', '11900000001', '2025001');
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
 VALUES ('Bruno Lima', '23456789012', 'senhaBruno', 'bd7ec1bf19c74bd895b5facd6fc0f2bdffaa4b8d173c985ea094bc42f8c624a1');
 INSERT INTO Servidores (id_servidor, email, telefone, tipo_servidor, siape)
-VALUES (last_insert_rowid(), 'bruno.lima@if.edu', '(11)90000-0002', 'Técnico', 'SIAPE1234');
+VALUES (last_insert_rowid(), 'bruno.lima@if.edu', '11900000002', 'Tecnico', 'SIAPE1234');
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
 VALUES ('Carla Dias', '34567890123', 'senhaCarla', 'c17fa12130ff247b490e18ae405e103bf543dcf371cee2b51f7052ff29cb6fd9');
 INSERT INTO Externos (id_externo, email, telefone, empresa)
-VALUES (last_insert_rowid(), 'carla.dias@empresa.com', '(11)90000-0003', 'Tech Eventos');
+VALUES (last_insert_rowid(), 'carla.dias@empresa.com', '11900000003', 'Tech Eventos');
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
 VALUES ('Daniel Costa', '45678901234', 'senhaDaniel', '09eb0a911ae0a2a715434d44203a3df64ecec5bdd71648ee876c092b5087427c');
 INSERT INTO Administradores (id_admin, email, telefone, nivel_acesso)
-VALUES (last_insert_rowid(), 'daniel.costa@if.edu', '(11)90000-0004', 5);
+VALUES (last_insert_rowid(), 'daniel.costa@if.edu', '11900000004', 5);
 
 INSERT INTO Pessoas (nome, cpf, senha_normal, senha_criptografada)
 VALUES ('Eduardo Alves', '56789012345', 'senhaEdu', '4debcc60d4b31cb7dad0084dfca2c2fe95a6c47202f3dc5a911dae9c17f425c8');
 INSERT INTO Alunos (id_aluno, email, telefone, matricula)
-VALUES (last_insert_rowid(), 'eduardo.alves@alunos.edu', '(11)90000-0005', '2025002');
+VALUES (last_insert_rowid(), 'eduardo.alves@alunos.edu', '11900000005', '2025002');
 
 INSERT INTO Eventos (nome, data_evento, local, vagas)
-VALUES ('Semana de Tecnologia', '2025-03-15', 'Auditório Central', 150);
+VALUES ('Semana de Tecnologia', '2025-03-15', 'Auditorio Central', 150);
 
 INSERT INTO Eventos (nome, data_evento, local, vagas)
-VALUES ('Workshop de Inovação', '2025-04-20', 'Laboratório 3', 80);
+VALUES ('Workshop de Inovacao', '2025-04-20', 'Laboratorio 3', 80);
 
 INSERT INTO Inscricoes (id_pessoa, id_evento, status)
 VALUES (
@@ -140,32 +140,32 @@ SELECT id_pessoa, nome, cpf, data_cadastro
 FROM Pessoas
 ORDER BY data_cadastro;
 
-SELECT e.nome AS evento,
-       p.nome AS participante,
-       COALESCE(a.matricula, s.siape, ex.empresa, CASE WHEN ad.id_admin IS NOT NULL THEN 'Administrador' END) AS referencia_tipo,
-       i.status,
-       i.data_inscricao
-FROM Inscricoes i
-JOIN Eventos e ON e.id_evento = i.id_evento
-JOIN Pessoas p ON p.id_pessoa = i.id_pessoa
-LEFT JOIN Alunos a ON a.id_aluno = p.id_pessoa
-LEFT JOIN Servidores s ON s.id_servidor = p.id_pessoa
-LEFT JOIN Externos ex ON ex.id_externo = p.id_pessoa
-LEFT JOIN Administradores ad ON ad.id_admin = p.id_pessoa
-ORDER BY e.nome, p.nome;
+SELECT Eventos.nome AS evento,
+       Pessoas.nome AS participante,
+       COALESCE(Alunos.matricula, Servidores.siape, Externos.empresa, CASE WHEN Administradores.id_admin IS NOT NULL THEN 'Administrador' END) AS referencia_tipo,
+       Inscricoes.status,
+       Inscricoes.data_inscricao
+FROM Inscricoes
+JOIN Eventos ON Eventos.id_evento = Inscricoes.id_evento
+JOIN Pessoas ON Pessoas.id_pessoa = Inscricoes.id_pessoa
+LEFT JOIN Alunos ON Alunos.id_aluno = Pessoas.id_pessoa
+LEFT JOIN Servidores ON Servidores.id_servidor = Pessoas.id_pessoa
+LEFT JOIN Externos ON Externos.id_externo = Pessoas.id_pessoa
+LEFT JOIN Administradores ON Administradores.id_admin = Pessoas.id_pessoa
+ORDER BY Eventos.nome, Pessoas.nome;
 
-SELECT e.id_evento,
-       e.nome,
-       e.vagas,
-       e.vagas - (
+SELECT Eventos.id_evento,
+       Eventos.nome,
+       Eventos.vagas,
+       Eventos.vagas - (
          SELECT COUNT(*)
-         FROM Inscricoes sub
-         WHERE sub.id_evento = e.id_evento
-           AND sub.status <> 'Cancelado'
+         FROM Inscricoes
+         WHERE Inscricoes.id_evento = Eventos.id_evento
+           AND Inscricoes.status <> 'Cancelado'
        ) AS vagas_restantes
-FROM Eventos e;
+FROM Eventos;
 
-SELECT tipo_usuario, total
+SELECT resumo.tipo_usuario, resumo.total
 FROM (
   SELECT 'Alunos' AS tipo_usuario, COUNT(*) AS total FROM Alunos
   UNION ALL
@@ -174,17 +174,14 @@ FROM (
   SELECT 'Externos', COUNT(*) FROM Externos
   UNION ALL
   SELECT 'Administradores', COUNT(*) FROM Administradores
-);
+) AS resumo;
 
-SELECT p.nome, ex.empresa, e.nome AS evento
-FROM Pessoas p
-JOIN Externos ex ON ex.id_externo = p.id_pessoa
-WHERE EXISTS (
-  SELECT 1
-  FROM Inscricoes i
-  WHERE i.id_pessoa = p.id_pessoa
-    AND i.status = 'Confirmado'
-);
+SELECT Pessoas.nome, Externos.empresa, Eventos.nome AS evento
+FROM Pessoas
+JOIN Externos ON Externos.id_externo = Pessoas.id_pessoa
+JOIN Inscricoes ON Inscricoes.id_pessoa = Pessoas.id_pessoa
+JOIN Eventos ON Eventos.id_evento = Inscricoes.id_evento
+WHERE Inscricoes.status = 'Confirmado';
 
 UPDATE Alunos
 SET email = 'ana.souza.atualizado@alunos.edu'
